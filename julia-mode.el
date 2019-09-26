@@ -305,11 +305,33 @@ This function provides equivalent functionality, but makes no efforts to optimis
   (rx (or bol whitespace "(" "[" "," "=")
       (group ":" (or letter (syntax symbol)) (0+ (or word (syntax symbol))))))
 
+(defconst julia-function-call-regex
+  (rx (group (1+ (or alnum "!" "_"))) (? ".") "("))
+
+(defconst julia-string-interpolation-regex
+  (rx "$" (? "(") (* (or word (not (any ")")))) (? ")")))
+
+(defconst julia-type-ass-regex
+  (rx (or "::" ":>" "<:")))
+
+(defconst julia-nl-const-regex
+  (rx "//" letter))
+
 (defconst julia-font-lock-keywords
   (list
-   ;; Ensure :: and <: aren't highlighted, so we don't confuse ::Foo with :foo.
-   ;; (in Emacs, keywords don't overlap).
-   (cons (rx (or "::" "<:")) ''default)
+   ;; Highlight's functions calls (not unicode support)
+   (list julia-function-call-regex 1 'font-lock-type-face)
+
+   ;; Names starting with `$', even inside string literals.
+   ;;(list julia-string-interpolation-regex 0 'font-lock-keyword-face)
+   `(,(rx "$" (? "(") (* (or word (not (any ")")))) (? ")")) 0 font-lock-keyword-face prepend)
+
+   ;; Constants like `\n', even inside string literals.
+   ;;(list julia-nl-const-regex 0 'font-lock-constant-face)
+   `(,(rx "\\" letter) 0 font-lock-constant-face prepend)
+
+   (list julia-type-ass-regex 0 'font-lock-keyword-face)
+
    ;; Highlight quoted symbols before keywords, so :function is not
    ;; highlighted as a keyword.
    (list julia-quoted-symbol-regex 1 ''julia-quoted-symbol-face)
@@ -327,7 +349,7 @@ This function provides equivalent functionality, but makes no efforts to optimis
    (list julia-function-assignment-regex 1 'font-lock-function-name-face)
    (list julia-type-regex 1 'font-lock-type-face)
    (list julia-type-annotation-regex 1 'font-lock-type-face)
-   ;;(list julia-type-parameter-regex 1 'font-lock-type-face)
+;;   (list julia-type-parameter-regex 1 'font-lock-type-face)
    (list julia-subtype-regex 1 'font-lock-type-face)
    (list julia-builtin-regex 1 'font-lock-builtin-face)
    ))
@@ -586,7 +608,7 @@ only comments."
 
 (defun julia-indent-in-string ()
   "Indentation inside strings with newlines is \"manual\",
-meaning always increase indent on TAB and decrease on S-TAB."
+  meaning always increase indent on TAB and decrease on S-TAB."
   (save-excursion
     (beginning-of-line)
     (when (julia-in-string)
