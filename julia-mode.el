@@ -324,7 +324,8 @@ This function provides equivalent functionality, but makes no efforts to optimis
 
    ;; Names starting with `$', even inside string literals.
    ;;(list julia-string-interpolation-regex 0 'font-lock-keyword-face)
-   `(,(rx "$" (? "(") (* (or word (not (any ")")))) (? ")")) 0 font-lock-keyword-face prepend)
+   ;;`(,(rx "$" (? "(") (* (or word (not (any ")")))) (? ")")) 0 font-lock-keyword-face prepend)
+   `(,(rx "$" (or (1+ (or alnum "_")) (group "(" (* (or word (not (any ")")))) ")" ))) 0 font-lock-keyword-face prepend)
 
    ;; Constants like `\n', even inside string literals.
    ;;(list julia-nl-const-regex 0 'font-lock-constant-face)
