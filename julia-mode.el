@@ -305,8 +305,18 @@ This function provides equivalent functionality, but makes no efforts to optimis
   (rx (or bol whitespace "(" "[" "," "=")
       (group ":" (or letter (syntax symbol)) (0+ (or word (syntax symbol))))))
 
+;;(defconst julia-function-call-regex
+;;  (rx (not ) (group (1+ (or alnum "!" "_"))) (? ".") (0+ space) "("))
+
 (defconst julia-function-call-regex
-  (rx (group (1+ (or alnum "!" "_"))) (? ".") "("))
+  (rx (not (any "function"))
+      (1+ space)
+      ;; Don't highlight module names in function declarations:
+      (* (seq (1+ (or word (syntax symbol))) "."))
+      ;; The function name itself
+      (group (1+ (or alnum "!" "_"))) (? ".") (0+ space) "("))
+
+
 
 (defconst julia-string-interpolation-regex
   (rx "$" (? "(") (* (or word (not (any ")")))) (? ")")))
@@ -321,6 +331,7 @@ This function provides equivalent functionality, but makes no efforts to optimis
   (list
    ;; Highlight's functions calls (not unicode support)
    (list julia-function-call-regex 1 'font-lock-type-face)
+
 
    ;; Names starting with `$', even inside string literals.
    ;;(list julia-string-interpolation-regex 0 'font-lock-keyword-face)
